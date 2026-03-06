@@ -26,7 +26,18 @@
         .container { max-width: 700px; margin: 0 auto; padding: 1.5rem; }
         .header { text-align: center; margin-bottom: 1.5rem; padding-top: 1rem; }
         h1 { font-size: 1.75rem; font-weight: 800; }
-        .subtitle { color: var(--text-muted); font-size: 0.875rem; }
+        .subtitle { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1rem; }
+
+        /* Notification Banner */
+        .notif-banner {
+            background: #e0e7ff; color: #3730a3; padding: 1rem; border-radius: var(--radius);
+            margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;
+            font-size: 0.9rem; font-weight: 500; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .notif-banner button {
+            background: var(--primary); color: white; border: none; padding: 0.5rem 1rem;
+            border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
 
         /* Loading Overlay */
         #loading {
@@ -36,25 +47,26 @@
             font-weight: bold; color: var(--primary); font-size: 1.2rem;
         }
         
-        /* Tabs */
-        .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; background: var(--surface); padding: 0.5rem; border-radius: var(--radius); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .tab-btn {
-            flex: 1; padding: 0.75rem; border: none; background: transparent; border-radius: 8px;
-            font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.2s;
-        }
+        /* Tabs & Controls */
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; background: var(--surface); padding: 0.5rem; border-radius: var(--radius); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .tab-btn { flex: 1; padding: 0.75rem; border: none; background: transparent; border-radius: 8px; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
         .tab-btn.active { background: var(--primary); color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Inputs */
-        .input-card { background: var(--surface); padding: 1.25rem; border-radius: var(--radius); margin-bottom: 2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 0.75rem; }
+        .input-card { background: var(--surface); padding: 1.25rem; border-radius: var(--radius); margin-bottom: 1.5rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 0.75rem; }
         input[type="text"], select { width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.95rem; outline: none; background: #f9fafb; }
         input[type="text"]:focus, select:focus { border-color: var(--primary); background: white; }
         .input-row { display: flex; gap: 0.5rem; flex-direction: column; }
         @media (min-width: 600px) { .input-row { flex-direction: row; } .flex-2 { flex: 2; } .flex-1 { flex: 1; } }
         button.add-btn { background: var(--primary); color: white; border: none; padding: 0.875rem; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; transition: background 0.2s; }
         button.add-btn:hover { background: var(--primary-hover); }
+
+        .tools-row { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+        button.summary-btn { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
+        button.summary-btn:hover { background: #e5e7eb; }
 
         /* Task List */
         ul { list-style: none; }
@@ -71,8 +83,10 @@
         .badge-rec { background: #e0e7ff; color: #3730a3; }
         
         .action-btns { display: flex; gap: 0.4rem; }
-        button.icon-btn { background: transparent; border: none; padding: 0.5rem; border-radius: 8px; cursor: pointer; font-size: 1.1rem; }
-        button.icon-btn:hover { background: #f3f4f6; }
+        button.icon-btn { background: transparent; border: none; padding: 0.5rem; border-radius: 8px; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; }
+        button.icon-btn.notif { color: var(--warning); background: #fef3c7; }
+        button.icon-btn.delete { color: var(--danger); }
+        button.icon-btn:hover { opacity: 0.8; }
 
         /* History Table */
         .history-card { background: var(--surface); padding: 1rem; border-radius: var(--radius); box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow-x: auto; }
@@ -85,46 +99,26 @@
         .check-mark { color: var(--success); font-weight: bold; font-size: 1rem; }
 
         /* Modal Hapus */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5); z-index: 2000;
-            display: none; align-items: center; justify-content: center;
-            backdrop-filter: blur(2px);
-        }
-        .modal-box {
-            background: var(--surface); padding: 1.5rem; border-radius: var(--radius);
-            text-align: center; max-width: 320px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+        .modal-box { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); text-align: center; max-width: 320px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .modal-box h3 { margin-bottom: 0.5rem; color: var(--text-main); }
         .modal-box p { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
         .modal-actions { display: flex; gap: 0.75rem; justify-content: center; }
         .modal-actions button { flex: 1; padding: 0.75rem 1rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: background 0.2s; }
         .btn-cancel { background: #f3f4f6; color: #4b5563; }
-        .btn-cancel:hover { background: #e5e7eb; }
         .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { background: #dc2626; }
     </style>
 </head>
 <body>
 
 <div id="loading">
     <span id="loadingText">Menyinkronkan Data...</span>
-    <div id="loadingError" style="display: none; color: #b91c1c; text-align: center; padding: 1.5rem; max-width: 320px; font-size: 0.95rem; font-weight: normal; background: #fee2e2; border-radius: 12px; margin-top: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-        <b>⚠️ Sistem Terhenti</b><br><br>
-        Gagal terhubung ke Database. Pastikan `myFirebaseConfig` sudah benar dan terisi.<br><br>
+    <div id="loadingError" style="display: none; color: #b91c1c; text-align: center; padding: 1.5rem; max-width: 320px; font-size: 0.95rem; font-weight: normal; background: #fee2e2; border-radius: 12px; margin-top: 1rem;">
+        <b>⚠️ Sistem Terhenti</b><br><br>Gagal terhubung ke Database. Pastikan `myFirebaseConfig` sudah benar.<br><br>
         <button onclick="document.getElementById('loading').style.display='none';" style="padding: 0.75rem 1rem; width: 100%; border: none; border-radius: 8px; background: #dc2626; color: white; cursor: pointer; font-weight: bold; margin-top: 15px;">Tutup Paksa Loading</button>
     </div>
 </div>
 
-<script>
-    // Safety Script: Mencegah layar stuck selamanya
-    window.loadingSafetyTimer = setTimeout(() => {
-        const errBox = document.getElementById('loadingError');
-        if (errBox) errBox.style.display = 'block';
-    }, 4000);
-</script>
-
-<!-- Custom Confirm Modal -->
 <div id="confirmModal" class="modal-overlay">
     <div class="modal-box">
         <h3 id="modalTitle">Hapus Target?</h3>
@@ -142,13 +136,17 @@
         <div class="subtitle" id="userStatus">Terhubung Langsung ⚡</div>
     </div>
 
-    <!-- Tab Navigation -->
+    <!-- Banner Izin Notifikasi (Ditampilkan via JS jika belum diizinkan) -->
+    <div id="notifBanner" class="notif-banner" style="display: none;">
+        <span>Aktifkan Notifikasi untuk fitur Pin & Reminder!</span>
+        <button onclick="requestNotificationPermission()">Aktifkan</button>
+    </div>
+
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('todo')">📝 Target Hari Ini</button>
         <button class="tab-btn" onclick="switchTab('history')">📊 Riwayat Bulanan</button>
     </div>
 
-    <!-- TAB 1: TODO LIST -->
     <div id="todo" class="tab-content active">
         <div class="input-card">
             <div class="input-row">
@@ -170,10 +168,14 @@
                 <button class="add-btn flex-1" onclick="addTask()">+ Tambah</button>
             </div>
         </div>
+
+        <div class="tools-row">
+            <button class="summary-btn" onclick="sendSummaryNotification()">📱 Kirim Ringkasan ke Notif</button>
+        </div>
+        
         <ul id="taskList"></ul>
     </div>
 
-    <!-- TAB 2: HISTORY TABLE -->
     <div id="history" class="tab-content">
         <div class="history-card">
             <div class="history-header">
@@ -184,13 +186,85 @@
     </div>
 </div>
 
+<script>
+    // Safety Script: Mencegah layar stuck selamanya
+    window.loadingSafetyTimer = setTimeout(() => {
+        const errBox = document.getElementById('loadingError');
+        if (errBox) errBox.style.display = 'block';
+    }, 4000);
+
+    // ==========================================
+    // SERVICE WORKER & NOTIFICATION SETUP (ON-THE-FLY)
+    // ==========================================
+    let swRegistration = null;
+    const appUrl = window.location.href.split('?')[0];
+
+    const swCode = `
+        self.addEventListener('notificationclick', function(event) {
+            event.notification.close();
+            
+            // Jika tombol 'Tandai Selesai' ditekan
+            if (event.action === 'complete') {
+                const taskId = event.notification.data.taskId;
+                const recurrence = event.notification.data.recurrence;
+                const targetUrl = '${appUrl}?complete_task=' + taskId + '&recurrence=' + recurrence;
+                
+                event.waitUntil(
+                    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+                        for (let client of windowClients) {
+                            if (client.url.split('?')[0] === '${appUrl}') {
+                                client.postMessage({ type: 'COMPLETE_TASK', taskId: taskId, recurrence: recurrence });
+                                return client.focus();
+                            }
+                        }
+                        return clients.openWindow(targetUrl);
+                    })
+                );
+            } else {
+                event.waitUntil(clients.openWindow('${appUrl}'));
+            }
+        });
+    `;
+
+    if ('serviceWorker' in navigator) {
+        const blob = new Blob([swCode], { type: 'text/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(swUrl).then(reg => {
+            swRegistration = reg;
+            checkNotificationStatus();
+        }).catch(err => console.log('SW Error:', err));
+
+        // Dengar pesan dari Service Worker untuk update centang secara langsung saat web masih terbuka
+        navigator.serviceWorker.addEventListener('message', event => {
+            if (event.data && event.data.type === 'COMPLETE_TASK') {
+                if(window.toggleTask) window.toggleTask(event.data.taskId, event.data.recurrence, true);
+            }
+        });
+    }
+
+    function checkNotificationStatus() {
+        if (!('Notification' in window)) return;
+        if (Notification.permission === 'default') {
+            document.getElementById('notifBanner').style.display = 'flex';
+        }
+    }
+
+    window.requestNotificationPermission = async () => {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            document.getElementById('notifBanner').style.display = 'none';
+            alert("Notifikasi diizinkan! Coba klik tombol 🔔 di tugasmu.");
+        }
+    }
+</script>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // =========================================================================
-    // ⬇️ MASUKKAN CONFIG FIREBASE KAMU DI SINI (DAPAT DARI FIREBASE CONSOLE) ⬇️
+    // CONFIG FIREBASE
     // =========================================================================
     const myFirebaseConfig = {
         apiKey: "AIzaSyBPMU7vR0XoZ9_CABOPqwZPf9rWTwYu1-o",
@@ -201,7 +275,6 @@
         appId: "1:805757875499:web:e850d96ee42b559aa5c16e",
         measurementId: "G-091BVRHN9S"
     };
-    // =========================================================================
 
     let auth, db, appId, currentUser = null;
     let tasks = [];
@@ -232,24 +305,18 @@
 
     async function initFirebase() {
         try {
-            let firebaseConfig;
+            let firebaseConfig = myFirebaseConfig;
+            appId = "my-vercel-app"; 
             
             if (typeof __firebase_config !== 'undefined') {
                 firebaseConfig = JSON.parse(__firebase_config);
                 appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-            } else {
-                firebaseConfig = myFirebaseConfig;
-                appId = "my-vercel-app"; 
-                if (firebaseConfig.apiKey === "API_KEY_KAMU") {
-                    throw new Error("Kamu belum memasukkan myFirebaseConfig ke dalam script HTML!");
-                }
             }
             
             const app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
 
-            // Langsung login tanpa UI (Anonymous)
             await signInAnonymously(auth);
 
             onAuthStateChanged(auth, (user) => {
@@ -258,42 +325,38 @@
                     clearTimeout(window.loadingSafetyTimer); 
                     document.getElementById('loading').style.display = 'none';
                     setupRealtimeListeners();
+
+                    // Cek jika app dibuka dari notifikasi (Service Worker fallback)
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.has('complete_task')) {
+                        const tId = urlParams.get('complete_task');
+                        const rec = urlParams.get('recurrence') || 'daily';
+                        window.toggleTask(tId, rec, true);
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
                 }
             });
         } catch (error) {
             console.error("Firebase Error:", error);
-            clearTimeout(window.loadingSafetyTimer); 
             document.getElementById('loadingError').style.display = 'block';
         }
     }
 
-    // Fungsi untuk mendapatkan path bersama (Public Data Path)
-    function getTasksPath() {
-        return collection(db, 'artifacts', appId, 'public', 'data', 'tasks');
-    }
-    function getHistoryPath() {
-        return collection(db, 'artifacts', appId, 'public', 'data', 'history');
-    }
-    function getTaskDoc(taskId) {
-        return doc(db, 'artifacts', appId, 'public', 'data', 'tasks', taskId);
-    }
-    function getHistoryDoc(historyId) {
-        return doc(db, 'artifacts', appId, 'public', 'data', 'history', historyId);
-    }
+    function getTasksPath() { return collection(db, 'artifacts', appId, 'public', 'data', 'tasks'); }
+    function getHistoryPath() { return collection(db, 'artifacts', appId, 'public', 'data', 'history'); }
+    function getTaskDoc(taskId) { return doc(db, 'artifacts', appId, 'public', 'data', 'tasks', taskId); }
+    function getHistoryDoc(historyId) { return doc(db, 'artifacts', appId, 'public', 'data', 'history', historyId); }
 
     function setupRealtimeListeners() {
         if (!currentUser) return;
-
-        // Membaca dari data publik bersama (bukan per-user)
         unsubTasks = onSnapshot(getTasksPath(), (snapshot) => {
             tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderUI();
-        }, (error) => console.error("Error baca tasks:", error));
-
+        });
         unsubHistory = onSnapshot(getHistoryPath(), (snapshot) => {
             historyLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderUI();
-        }, (error) => console.error("Error baca history:", error));
+        });
     }
 
     function renderUI() {
@@ -310,9 +373,7 @@
         const list = document.getElementById('taskList');
         list.innerHTML = '';
         
-        const sortedTasks = [...tasks].sort((a, b) => {
-            return isCompletedCurrentCycle(a.id, a.recurrence) - isCompletedCurrentCycle(b.id, b.recurrence);
-        });
+        const sortedTasks = [...tasks].sort((a, b) => isCompletedCurrentCycle(a.id, a.recurrence) - isCompletedCurrentCycle(b.id, b.recurrence));
 
         if (sortedTasks.length === 0) {
             list.innerHTML = `<li style="justify-content:center; color: var(--text-muted);">Belum ada target. Tambahkan di atas!</li>`;
@@ -326,6 +387,10 @@
             
             const recLabels = { 'daily': '🔁 Harian', 'weekly': '📅 Mingguan', 'monthly': '🗓️ Bulanan', 'none': '🎯 Sekali' };
             
+            // Render Notif Pin button ONLY IF not completed
+            const pinBtnHTML = !completed ? 
+                `<button class="icon-btn notif" onclick="window.pinTaskToNotif('${task.id}', '${task.text.replace(/'/g, "\\'")}', '${task.recurrence}')" title="Pin ke Notifikasi">🔔</button>` : '';
+
             li.innerHTML = `
                 <input type="checkbox" ${completed ? 'checked' : ''} onchange="window.toggleTask('${task.id}', '${task.recurrence}', this.checked)">
                 <div class="task-content">
@@ -336,12 +401,52 @@
                     </div>
                 </div>
                 <div class="action-btns">
-                    <button class="icon-btn" onclick="window.deleteTask('${task.id}')" title="Hapus">🗑️</button>
+                    ${pinBtnHTML}
+                    <button class="icon-btn delete" onclick="window.deleteTask('${task.id}')" title="Hapus">🗑️</button>
                 </div>
             `;
             list.appendChild(li);
         });
     }
+
+    // --- FITUR NOTIFIKASI BARU ---
+    window.pinTaskToNotif = (taskId, text, recurrence) => {
+        if (!swRegistration || Notification.permission !== 'granted') {
+            alert('Izinkan akses notifikasi terlebih dahulu.');
+            return;
+        }
+        swRegistration.showNotification('Jangan Lupa Target Ini! 📌', {
+            body: text,
+            icon: 'https://cdn-icons-png.flaticon.com/512/190/190411.png',
+            requireInteraction: true, // Membuat notif tetap nangkring (di iOS mungkin butuh interaksi user)
+            data: { taskId: taskId, recurrence: recurrence },
+            actions: [
+                { action: 'complete', title: '✅ Tandai Selesai' }
+            ]
+        });
+        alert('Tugas dipin ke Notifikasi!');
+    };
+
+    window.sendSummaryNotification = () => {
+        if (!swRegistration || Notification.permission !== 'granted') {
+            alert('Izinkan akses notifikasi terlebih dahulu.');
+            return;
+        }
+        const pendingTasks = tasks.filter(t => !isCompletedCurrentCycle(t.id, t.recurrence));
+        if (pendingTasks.length === 0) {
+            alert('Semua target hari ini sudah selesai! 🎉');
+            return;
+        }
+        
+        // Gabungkan list target ke dalam teks body notifikasi
+        let bodyText = pendingTasks.map((t, index) => `${index + 1}. ${t.text}`).join('\n');
+        
+        swRegistration.showNotification(`Sisa Target Hari Ini: ${pendingTasks.length} 🎯`, {
+            body: bodyText,
+            icon: 'https://cdn-icons-png.flaticon.com/512/190/190411.png',
+            requireInteraction: true
+        });
+    };
 
     function renderHistoryTable() {
         const container = document.getElementById('tableContainer');
@@ -359,9 +464,7 @@
         }
 
         let html = `<table><thead><tr><th class="task-name">Nama Target</th>`;
-        for (let i = 1; i <= daysInMonth; i++) {
-            html += `<th>${i}</th>`;
-        }
+        for (let i = 1; i <= daysInMonth; i++) { html += `<th>${i}</th>`; }
         html += `</tr></thead><tbody>`;
 
         tasks.forEach(task => {
@@ -392,9 +495,8 @@
         };
 
         input.value = '';
-        try {
-            await setDoc(getTaskDoc(newTask.id), newTask);
-        } catch (e) { console.error("Gagal menambah task", e); alert("Gagal menambah data. Cek Rules Firebase.");}
+        try { await setDoc(getTaskDoc(newTask.id), newTask); } 
+        catch (e) { console.error("Gagal menambah", e); }
     };
 
     window.toggleTask = async (taskId, recurrence, isChecking) => {
@@ -404,9 +506,7 @@
         
         try {
             if (isChecking) {
-                await setDoc(getHistoryDoc(historyId), {
-                    id: historyId, taskId: taskId, date: todayStr, cycleKey: cycleKey, timestamp: Date.now()
-                });
+                await setDoc(getHistoryDoc(historyId), { id: historyId, taskId: taskId, date: todayStr, cycleKey: cycleKey, timestamp: Date.now() });
             } else {
                 await deleteDoc(getHistoryDoc(historyId));
             }
@@ -417,37 +517,23 @@
 
     window.deleteTask = (taskId) => {
         taskToDeleteId = taskId;
-        document.getElementById('modalTitle').innerText = "Hapus Target?";
-        document.getElementById('modalDesc').innerText = "Target ini akan dihapus secara permanen dari daftar.";
-        document.querySelector('.btn-cancel').style.display = 'block';
-        document.querySelector('.btn-danger').innerText = "Ya, Hapus";
-        
-        document.querySelector('.btn-cancel').onclick = cancelDelete;
-        document.querySelector('.btn-danger').onclick = confirmDelete;
-
         document.getElementById('confirmModal').style.display = 'flex';
     };
-
     window.cancelDelete = () => {
         taskToDeleteId = null;
         document.getElementById('confirmModal').style.display = 'none';
     };
-
     window.confirmDelete = async () => {
         if (!currentUser || !taskToDeleteId) return;
         try {
             await deleteDoc(getTaskDoc(taskToDeleteId));
             cancelDelete();
-        } catch (e) { 
-            console.error("Gagal menghapus", e); 
-            cancelDelete();
-        }
+        } catch (e) { console.error("Gagal menghapus", e); cancelDelete(); }
     };
 
     window.switchTab = (tabId) => {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-        
         document.getElementById(tabId).classList.add('active');
         event.currentTarget.classList.add('active');
     };
