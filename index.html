@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Meta tag untuk mendukung PWA / Add to Home Screen -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Goal Tracker">
+    <title>Daily Goal Tracker</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f3f4f6;
+            --surface: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --radius: 16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header { text-align: center; margin-bottom: 2rem; padding-top: 1rem; }
+        h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.025em; }
+        .subtitle { color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem; }
+
+        .notif-banner {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .notif-banner button {
+            background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer;
+        }
+
+        .input-card {
+            background: var(--surface); padding: 1.25rem; border-radius: var(--radius);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 2rem;
+            display: flex; flex-direction: column; gap: 0.75rem;
+        }
+
+        input[type="text"], select {
+            width: 100%; padding: 0.875rem 1rem; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 1rem; outline: none;
+        }
+        input[type="text"]:focus, select:focus { border-color: var(--primary); }
+
+        .input-row { display: flex; gap: 0.75rem; flex-direction: column; }
+        @media (min-width: 600px) {
+            .input-row { flex-direction: row; }
+            input[type="text"] { flex: 2; }
+            select { flex: 1; }
+            button.add-btn { width: auto; flex: 1; }
+        }
+
+        button.add-btn {
+            background: var(--primary); color: white; border: none; padding: 0.875rem 1.5rem; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%;
+        }
+
+        ul { list-style: none; }
+        li {
+            background: var(--surface); padding: 1rem 1.25rem; border-radius: 12px; margin-bottom: 0.75rem;
+            display: flex; align-items: center; gap: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        input[type="checkbox"] { width: 24px; height: 24px; cursor: pointer; accent-color: var(--primary); }
+        .task-content { flex: 1; display: flex; flex-direction: column; gap: 0.25rem; }
+        .task-text { font-weight: 500; font-size: 1rem; }
+        li.completed .task-text { text-decoration: line-through; color: var(--text-muted); }
+        li.completed { opacity: 0.7; background: #f8fafc; }
+
+        .badge { font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 6px; font-weight: 600; text-transform: uppercase; display: inline-block; width: fit-content; }
+        .badge.ai-dev { background: #e0e7ff; color: #3730a3; }
+        .badge.fitness { background: #dcfce7; color: #166534; }
+        .badge.bisnis { background: #fef9c3; color: #854d0e; }
+        .badge.lainnya { background: #f3f4f6; color: #4b5563; }
+
+        .action-btns { display: flex; gap: 0.5rem; }
+        button.icon-btn {
+            background: transparent; border: none; padding: 0.5rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        button.icon-btn.notif { color: var(--warning); background: #fef3c7; }
+        button.icon-btn.delete { color: var(--danger); background: #fee2e2; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🎯 Daily Goal Tracker</h1>
+        <div class="subtitle">Fokus selesaikan targetmu hari ini</div>
+    </div>
+
+    <!-- Banner Permintaan Izin Notifikasi -->
+    <div id="notifBanner" class="notif-banner" style="display: none;">
+        <span>Izinkan notifikasi agar target bisa dipin di layar HP!</span>
+        <button onclick="requestNotificationPermission()">Izinkan</button>
+    </div>
+    
+    <div class="input-card">
+        <div class="input-row">
+            <input type="text" id="taskInput" placeholder="Apa fokus utamamu hari ini?" onkeypress="handleKeyPress(event)">
+        </div>
+        <div class="input-row">
+            <select id="categoryInput">
+                <option value="ai-dev">💻 AI & Web Dev</option>
+                <option value="fitness">🏋️ Fitness & Nutrisi</option>
+                <option value="bisnis">📦 Bisnis & Toko</option>
+                <option value="lainnya">📌 Lainnya</option>
+            </select>
+            <button class="add-btn" onclick="addTask()">+ Tambah Target</button>
+        </div>
+    </div>
+
+    <ul id="taskList"></ul>
+</div>
+
+<script>
+    let tasks = JSON.parse(localStorage.getItem('dailyGoals')) || [];
+    let swRegistration = null;
+
+    // --- SETUP SERVICE WORKER (DIBUAT ON-THE-FLY UNTUK SINGLE FILE) ---
+    // Service worker ini yang menangani klik tombol "Selesai" di notifikasi saat aplikasi ditutup
+    const appUrl = window.location.href.split('?')[0];
+    const swCode = `
+        self.addEventListener('notificationclick', function(event) {
+            event.notification.close(); // Tutup notifikasi
+            
+            // Jika tombol 'Selesai' ditekan
+            if (event.action === 'complete') {
+                const taskId = event.notification.data.id;
+                const targetUrl = '${appUrl}?complete_task=' + taskId;
+                
+                event.waitUntil(
+                    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+                        // Cari apakah aplikasinya sedang terbuka di background
+                        for (let client of windowClients) {
+                            if (client.url.split('?')[0] === '${appUrl}') {
+                                // Kirim pesan ke aplikasi yang terbuka untuk centang otomatis
+                                client.postMessage({ type: 'COMPLETE_TASK', id: taskId });
+                                return client.focus();
+                            }
+                        }
+                        // Jika tidak ada yang terbuka, buka aplikasinya
+                        return clients.openWindow(targetUrl);
+                    })
+                );
+            } else {
+                event.waitUntil(clients.openWindow('${appUrl}'));
+            }
+        });
+    `;
+
+    // Mendaftarkan Service Worker
+    if ('serviceWorker' in navigator) {
+        const blob = new Blob([swCode], { type: 'text/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(swUrl).then(reg => {
+            swRegistration = reg;
+            checkNotificationStatus();
+        }).catch(err => console.log('Service Worker Error', err));
+
+        // Dengarkan pesan dari Service Worker (jika aplikasi terbuka)
+        navigator.serviceWorker.addEventListener('message', event => {
+            if (event.data && event.data.type === 'COMPLETE_TASK') {
+                toggleTask(event.data.id, true);
+            }
+        });
+    }
+
+    // Cek jika aplikasi dibuka dari notifikasi dengan parameter URL
+    window.addEventListener('load', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('complete_task')) {
+            const taskId = parseInt(urlParams.get('complete_task'));
+            toggleTask(taskId, true);
+            // Bersihkan URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    });
+
+    // --- LOGILKA NOTIFIKASI ---
+    function checkNotificationStatus() {
+        if (!('Notification' in window)) return;
+        if (Notification.permission === 'default') {
+            document.getElementById('notifBanner').style.display = 'flex';
+        } else {
+            document.getElementById('notifBanner').style.display = 'none';
+        }
+    }
+
+    async function requestNotificationPermission() {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            document.getElementById('notifBanner').style.display = 'none';
+            alert("Notifikasi diizinkan! Coba klik tombol lonceng di targetmu.");
+        }
+    }
+
+    function pinToNotification(id, text) {
+        if (!swRegistration) {
+            alert('Sistem Notifikasi belum siap. Pastikan kamu membuka via HTTPS/Live Server.');
+            return;
+        }
+        if (Notification.permission !== 'granted') {
+            alert('Tolong izinkan notifikasi terlebih dahulu.');
+            return;
+        }
+
+        swRegistration.showNotification('Target Harian: ' + text, {
+            body: 'Jangan lupa selesaikan target ini!',
+            icon: 'https://cdn-icons-png.flaticon.com/512/190/190411.png', // Icon default
+            requireInteraction: true, // Membuat notif tetap nangkring (persistent)
+            data: { id: id },
+            actions: [
+                { action: 'complete', title: '✅ Tandai Selesai' } // Tombol interaktif di notifikasi
+            ]
+        });
+    }
+
+    // --- LOGIKA APLIKASI UTAMA ---
+    function saveTasks() { localStorage.setItem('dailyGoals', JSON.stringify(tasks)); }
+
+    function renderTasks() {
+        const list = document.getElementById('taskList');
+        list.innerHTML = '';
+        if (tasks.length === 0) return;
+
+        const sortedTasks = [...tasks].sort((a, b) => a.completed - b.completed);
+
+        sortedTasks.forEach(task => {
+            const li = document.createElement('li');
+            if (task.completed) li.classList.add('completed');
+            
+            li.innerHTML = `
+                <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})">
+                <div class="task-content">
+                    <span class="task-text">${task.text}</span>
+                    <span class="badge ${task.category}">${getCategoryLabel(task.category)}</span>
+                </div>
+                <div class="action-btns">
+                    ${!task.completed ? `<button class="icon-btn notif" onclick="pinToNotification(${task.id}, '${task.text.replace(/'/g, "\\'")}')" title="Pin ke Notifikasi HP">🔔</button>` : ''}
+                    <button class="icon-btn delete" onclick="deleteTask(${task.id})" title="Hapus">🗑️</button>
+                </div>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    function getCategoryLabel(cat) {
+        const labels = { 'ai-dev': 'Code', 'fitness': 'Fitness', 'bisnis': 'Bisnis', 'lainnya': 'Umum' };
+        return labels[cat] || 'Umum';
+    }
+
+    function addTask() {
+        const input = document.getElementById('taskInput');
+        if (input.value.trim() === '') return;
+        tasks.push({ id: Date.now(), text: input.value, category: document.getElementById('categoryInput').value, completed: false });
+        input.value = '';
+        saveTasks(); renderTasks();
+    }
+
+    function handleKeyPress(e) { if (e.key === 'Enter') addTask(); }
+
+    function toggleTask(id, forceComplete = null) {
+        tasks = tasks.map(t => {
+            if (t.id === id) return { ...t, completed: forceComplete !== null ? forceComplete : !t.completed };
+            return t;
+        });
+        saveTasks(); renderTasks();
+    }
+
+    function deleteTask(id) {
+        tasks = tasks.filter(t => t.id !== id);
+        saveTasks(); renderTasks();
+    }
+
+    renderTasks();
+</script>
+
+</body>
+</html>
