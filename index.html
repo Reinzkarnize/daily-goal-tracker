@@ -3,305 +3,421 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- Meta tag untuk mendukung PWA / Add to Home Screen -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Goal Tracker">
-    <title>Daily Goal Tracker</title>
+    <title>Daily Goal Tracker Pro</title>
     <style>
         :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --bg: #f3f4f6;
-            --surface: #ffffff;
-            --text-main: #111827;
-            --text-muted: #6b7280;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --radius: 16px;
+            --primary: #4f46e5; --primary-hover: #4338ca;
+            --bg: #f3f4f6; --surface: #ffffff;
+            --text-main: #111827; --text-muted: #6b7280;
+            --danger: #ef4444; --warning: #f59e0b; --success: #10b981;
+            --radius: 12px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text-main);
-            line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
+            background-color: var(--bg); color: var(--text-main); line-height: 1.5;
+            padding-bottom: 2rem;
         }
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 1.5rem;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+        .container { max-width: 700px; margin: 0 auto; padding: 1.5rem; }
+        .header { text-align: center; margin-bottom: 1.5rem; padding-top: 1rem; }
+        h1 { font-size: 1.75rem; font-weight: 800; }
+        .subtitle { color: var(--text-muted); font-size: 0.875rem; }
+
+        /* Loading Overlay */
+        #loading {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.8); z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-weight: bold; color: var(--primary); font-size: 1.2rem;
         }
 
-        .header { text-align: center; margin-bottom: 2rem; padding-top: 1rem; }
-        h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.025em; }
-        .subtitle { color: var(--text-muted); font-size: 0.875rem; margin-top: 0.25rem; }
-
-        .notif-banner {
-            background: #e0e7ff;
-            color: #3730a3;
-            padding: 1rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-            font-weight: 500;
+        /* Tabs */
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; background: var(--surface); padding: 0.5rem; border-radius: var(--radius); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .tab-btn {
+            flex: 1; padding: 0.75rem; border: none; background: transparent; border-radius: 8px;
+            font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.2s;
         }
-        .notif-banner button {
-            background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer;
-        }
+        .tab-btn.active { background: var(--primary); color: white; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .input-card {
-            background: var(--surface); padding: 1.25rem; border-radius: var(--radius);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 2rem;
-            display: flex; flex-direction: column; gap: 0.75rem;
-        }
+        /* Inputs */
+        .input-card { background: var(--surface); padding: 1.25rem; border-radius: var(--radius); margin-bottom: 2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 0.75rem; }
+        input[type="text"], select { width: 100%; padding: 0.875rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 0.95rem; outline: none; background: #f9fafb; }
+        input[type="text"]:focus, select:focus { border-color: var(--primary); background: white; }
+        .input-row { display: flex; gap: 0.5rem; flex-direction: column; }
+        @media (min-width: 600px) { .input-row { flex-direction: row; } .flex-2 { flex: 2; } .flex-1 { flex: 1; } }
+        button.add-btn { background: var(--primary); color: white; border: none; padding: 0.875rem; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; transition: background 0.2s; }
+        button.add-btn:hover { background: var(--primary-hover); }
 
-        input[type="text"], select {
-            width: 100%; padding: 0.875rem 1rem; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 1rem; outline: none;
-        }
-        input[type="text"]:focus, select:focus { border-color: var(--primary); }
-
-        .input-row { display: flex; gap: 0.75rem; flex-direction: column; }
-        @media (min-width: 600px) {
-            .input-row { flex-direction: row; }
-            input[type="text"] { flex: 2; }
-            select { flex: 1; }
-            button.add-btn { width: auto; flex: 1; }
-        }
-
-        button.add-btn {
-            background: var(--primary); color: white; border: none; padding: 0.875rem 1.5rem; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%;
-        }
-
+        /* Task List */
         ul { list-style: none; }
-        li {
-            background: var(--surface); padding: 1rem 1.25rem; border-radius: 12px; margin-bottom: 0.75rem;
-            display: flex; align-items: center; gap: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        
-        input[type="checkbox"] { width: 24px; height: 24px; cursor: pointer; accent-color: var(--primary); }
-        .task-content { flex: 1; display: flex; flex-direction: column; gap: 0.25rem; }
-        .task-text { font-weight: 500; font-size: 1rem; }
+        li { background: var(--surface); padding: 1rem; border-radius: var(--radius); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; accent-color: var(--primary); }
+        .task-content { flex: 1; display: flex; flex-direction: column; gap: 0.3rem; }
+        .task-text { font-weight: 600; font-size: 0.95rem; }
         li.completed .task-text { text-decoration: line-through; color: var(--text-muted); }
-        li.completed { opacity: 0.7; background: #f8fafc; }
+        li.completed { opacity: 0.75; background: #f8fafc; }
+        
+        .badges { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+        .badge { font-size: 0.65rem; padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 700; text-transform: uppercase; }
+        .badge-cat { background: #f3f4f6; color: #4b5563; }
+        .badge-rec { background: #e0e7ff; color: #3730a3; }
+        
+        .action-btns { display: flex; gap: 0.4rem; }
+        button.icon-btn { background: transparent; border: none; padding: 0.5rem; border-radius: 8px; cursor: pointer; font-size: 1.1rem; }
+        button.icon-btn:hover { background: #f3f4f6; }
 
-        .badge { font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 6px; font-weight: 600; text-transform: uppercase; display: inline-block; width: fit-content; }
-        .badge.ai-dev { background: #e0e7ff; color: #3730a3; }
-        .badge.fitness { background: #dcfce7; color: #166534; }
-        .badge.bisnis { background: #fef9c3; color: #854d0e; }
-        .badge.lainnya { background: #f3f4f6; color: #4b5563; }
+        /* History Table */
+        .history-card { background: var(--surface); padding: 1rem; border-radius: var(--radius); box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow-x: auto; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        table { border-collapse: collapse; width: 100%; min-width: 600px; font-size: 0.85rem; }
+        th, td { border: 1px solid #e5e7eb; padding: 0.4rem; text-align: center; }
+        th { background: #f9fafb; font-weight: 600; color: var(--text-muted); }
+        td.task-name, th.task-name { text-align: left; position: sticky; left: 0; background: var(--surface); z-index: 10; font-weight: 600; min-width: 150px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 2px 0 5px rgba(0,0,0,0.02); }
+        th.task-name { background: #f9fafb; }
+        .check-mark { color: var(--success); font-weight: bold; font-size: 1rem; }
 
-        .action-btns { display: flex; gap: 0.5rem; }
-        button.icon-btn {
-            background: transparent; border: none; padding: 0.5rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        /* Modal Hapus */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 2000;
+            display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(2px);
         }
-        button.icon-btn.notif { color: var(--warning); background: #fef3c7; }
-        button.icon-btn.delete { color: var(--danger); background: #fee2e2; }
+        .modal-box {
+            background: var(--surface); padding: 1.5rem; border-radius: var(--radius);
+            text-align: center; max-width: 320px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .modal-box h3 { margin-bottom: 0.5rem; color: var(--text-main); }
+        .modal-box p { color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem; }
+        .modal-actions { display: flex; gap: 0.75rem; justify-content: center; }
+        .modal-actions button { flex: 1; padding: 0.75rem 1rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: background 0.2s; }
+        .btn-cancel { background: #f3f4f6; color: #4b5563; }
+        .btn-cancel:hover { background: #e5e7eb; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #dc2626; }
     </style>
 </head>
 <body>
 
+<div id="loading">Memuat Data Cloud...</div>
+
+<!-- Custom Confirm Modal -->
+<div id="confirmModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3>Hapus Target?</h3>
+        <p>Target ini akan dihapus secara permanen dari daftar.</p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="cancelDelete()">Batal</button>
+            <button class="btn-danger" onclick="confirmDelete()">Ya, Hapus</button>
+        </div>
+    </div>
+</div>
+
 <div class="container">
     <div class="header">
         <h1>🎯 Daily Goal Tracker</h1>
-        <div class="subtitle">Fokus selesaikan targetmu hari ini</div>
+        <div class="subtitle" id="userStatus">Menghubungkan ke Cloud...</div>
     </div>
 
-    <!-- Banner Permintaan Izin Notifikasi -->
-    <div id="notifBanner" class="notif-banner" style="display: none;">
-        <span>Izinkan notifikasi agar target bisa dipin di layar HP!</span>
-        <button onclick="requestNotificationPermission()">Izinkan</button>
-    </div>
-    
-    <div class="input-card">
-        <div class="input-row">
-            <input type="text" id="taskInput" placeholder="Apa fokus utamamu hari ini?" onkeypress="handleKeyPress(event)">
-        </div>
-        <div class="input-row">
-            <select id="categoryInput">
-                <option value="ai-dev">💻 AI & Web Dev</option>
-                <option value="fitness">🏋️ Fitness & Nutrisi</option>
-                <option value="bisnis">📦 Bisnis & Toko</option>
-                <option value="lainnya">📌 Lainnya</option>
-            </select>
-            <button class="add-btn" onclick="addTask()">+ Tambah Target</button>
-        </div>
+    <!-- Tab Navigation -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('todo')">📝 Target Hari Ini</button>
+        <button class="tab-btn" onclick="switchTab('history')">📊 Riwayat Bulanan</button>
     </div>
 
-    <ul id="taskList"></ul>
+    <!-- TAB 1: TODO LIST -->
+    <div id="todo" class="tab-content active">
+        <div class="input-card">
+            <div class="input-row">
+                <input type="text" id="taskInput" class="flex-2" placeholder="Apa fokus utamamu?">
+            </div>
+            <div class="input-row">
+                <select id="categoryInput" class="flex-1">
+                    <option value="AI & Web Dev">💻 AI & Web Dev</option>
+                    <option value="Fitness">🏋️ Fitness</option>
+                    <option value="Bisnis">📦 Bisnis</option>
+                    <option value="Lainnya">📌 Lainnya</option>
+                </select>
+                <select id="recurrenceInput" class="flex-1">
+                    <option value="daily">🔁 Harian</option>
+                    <option value="weekly">📅 Mingguan</option>
+                    <option value="monthly">🗓️ Bulanan</option>
+                    <option value="none">🎯 Sekali Saja</option>
+                </select>
+                <button class="add-btn flex-1" onclick="addTask()">+ Tambah</button>
+            </div>
+        </div>
+        <ul id="taskList"></ul>
+    </div>
+
+    <!-- TAB 2: HISTORY TABLE -->
+    <div id="history" class="tab-content">
+        <div class="history-card">
+            <div class="history-header">
+                <h3 id="currentMonthLabel">Bulan Ini</h3>
+            </div>
+            <div id="tableContainer"></div>
+        </div>
+    </div>
 </div>
 
-<script>
-    let tasks = JSON.parse(localStorage.getItem('dailyGoals')) || [];
-    let swRegistration = null;
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // --- SETUP SERVICE WORKER (DIBUAT ON-THE-FLY UNTUK SINGLE FILE) ---
-    // Service worker ini yang menangani klik tombol "Selesai" di notifikasi saat aplikasi ditutup
-    const appUrl = window.location.href.split('?')[0];
-    const swCode = `
-        self.addEventListener('notificationclick', function(event) {
-            event.notification.close(); // Tutup notifikasi
+    let auth, db, appId, currentUser = null;
+    let tasks = [];
+    let historyLogs = [];
+    let unsubTasks = null, unsubHistory = null;
+
+    // --- UTILITIES TANGGAL & WAKTU ---
+    function getLocalYYYYMMDD(date) {
+        const d = new Date(date);
+        d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+        return d.toISOString().split('T')[0];
+    }
+
+    const todayStr = getLocalYYYYMMDD(new Date());
+
+    function getCycleKey(recurrence, dateStr) {
+        const [y, m, d] = dateStr.split('-');
+        if (recurrence === 'daily') return dateStr;
+        if (recurrence === 'monthly') return `${y}-${m}`;
+        if (recurrence === 'none') return 'once';
+        if (recurrence === 'weekly') {
+            const date = new Date(dateStr);
+            const day = date.getDay() || 7;
+            date.setHours(-24 * (day - 1));
+            return `W-${getLocalYYYYMMDD(date)}`;
+        }
+        return dateStr;
+    }
+
+    // --- INISIALISASI FIREBASE ---
+    async function initFirebase() {
+        try {
+            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+            if (!firebaseConfig) throw new Error("Config tidak ditemukan");
             
-            // Jika tombol 'Selesai' ditekan
-            if (event.action === 'complete') {
-                const taskId = event.notification.data.id;
-                const targetUrl = '${appUrl}?complete_task=' + taskId;
-                
-                event.waitUntil(
-                    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-                        // Cari apakah aplikasinya sedang terbuka di background
-                        for (let client of windowClients) {
-                            if (client.url.split('?')[0] === '${appUrl}') {
-                                // Kirim pesan ke aplikasi yang terbuka untuk centang otomatis
-                                client.postMessage({ type: 'COMPLETE_TASK', id: taskId });
-                                return client.focus();
-                            }
-                        }
-                        // Jika tidak ada yang terbuka, buka aplikasinya
-                        return clients.openWindow(targetUrl);
-                    })
-                );
+            appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
             } else {
-                event.waitUntil(clients.openWindow('${appUrl}'));
+                await signInAnonymously(auth);
             }
-        });
-    `;
 
-    // Mendaftarkan Service Worker
-    if ('serviceWorker' in navigator) {
-        const blob = new Blob([swCode], { type: 'text/javascript' });
-        const swUrl = URL.createObjectURL(blob);
-        navigator.serviceWorker.register(swUrl).then(reg => {
-            swRegistration = reg;
-            checkNotificationStatus();
-        }).catch(err => console.log('Service Worker Error', err));
-
-        // Dengarkan pesan dari Service Worker (jika aplikasi terbuka)
-        navigator.serviceWorker.addEventListener('message', event => {
-            if (event.data && event.data.type === 'COMPLETE_TASK') {
-                toggleTask(event.data.id, true);
-            }
-        });
-    }
-
-    // Cek jika aplikasi dibuka dari notifikasi dengan parameter URL
-    window.addEventListener('load', () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('complete_task')) {
-            const taskId = parseInt(urlParams.get('complete_task'));
-            toggleTask(taskId, true);
-            // Bersihkan URL
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-    });
-
-    // --- LOGILKA NOTIFIKASI ---
-    function checkNotificationStatus() {
-        if (!('Notification' in window)) return;
-        if (Notification.permission === 'default') {
-            document.getElementById('notifBanner').style.display = 'flex';
-        } else {
-            document.getElementById('notifBanner').style.display = 'none';
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                if (user) {
+                    document.getElementById('userStatus').innerText = `☁️ Tersinkronisasi | ID: ${user.uid.substring(0,6)}...`;
+                    setupRealtimeListeners();
+                }
+            });
+        } catch (error) {
+            console.error("Firebase Error:", error);
+            document.getElementById('userStatus').innerText = "⚠️ Mode Offline (Gagal konek cloud)";
+            document.getElementById('loading').style.display = 'none';
         }
     }
 
-    async function requestNotificationPermission() {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            document.getElementById('notifBanner').style.display = 'none';
-            alert("Notifikasi diizinkan! Coba klik tombol lonceng di targetmu.");
-        }
+    // --- FIRESTORE LISTENERS (REALTIME DATA) ---
+    function setupRealtimeListeners() {
+        if (!currentUser) return;
+        const uid = currentUser.uid;
+
+        // Listener Tasks
+        const tasksRef = collection(db, 'artifacts', appId, 'users', uid, 'tasks');
+        unsubTasks = onSnapshot(tasksRef, (snapshot) => {
+            tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderUI();
+            document.getElementById('loading').style.display = 'none';
+        }, (error) => console.error(error));
+
+        // Listener History
+        const historyRef = collection(db, 'artifacts', appId, 'users', uid, 'history');
+        unsubHistory = onSnapshot(historyRef, (snapshot) => {
+            historyLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderUI();
+        }, (error) => console.error(error));
     }
 
-    function pinToNotification(id, text) {
-        if (!swRegistration) {
-            alert('Sistem Notifikasi belum siap. Pastikan kamu membuka via HTTPS/Live Server.');
-            return;
-        }
-        if (Notification.permission !== 'granted') {
-            alert('Tolong izinkan notifikasi terlebih dahulu.');
-            return;
-        }
-
-        swRegistration.showNotification('Target Harian: ' + text, {
-            body: 'Jangan lupa selesaikan target ini!',
-            icon: 'https://cdn-icons-png.flaticon.com/512/190/190411.png', // Icon default
-            requireInteraction: true, // Membuat notif tetap nangkring (persistent)
-            data: { id: id },
-            actions: [
-                { action: 'complete', title: '✅ Tandai Selesai' } // Tombol interaktif di notifikasi
-            ]
-        });
+    // --- RENDER APP ---
+    function renderUI() {
+        renderTasks();
+        renderHistoryTable();
     }
 
-    // --- LOGIKA APLIKASI UTAMA ---
-    function saveTasks() { localStorage.setItem('dailyGoals', JSON.stringify(tasks)); }
+    // Cek apakah task sudah dikerjakan di siklus saat ini
+    function isCompletedCurrentCycle(taskId, recurrence) {
+        const cycleKey = getCycleKey(recurrence, todayStr);
+        return historyLogs.some(h => h.taskId === taskId && h.cycleKey === cycleKey);
+    }
 
     function renderTasks() {
         const list = document.getElementById('taskList');
         list.innerHTML = '';
-        if (tasks.length === 0) return;
+        
+        // Urutkan: belum selesai di atas
+        const sortedTasks = [...tasks].sort((a, b) => {
+            return isCompletedCurrentCycle(a.id, a.recurrence) - isCompletedCurrentCycle(b.id, b.recurrence);
+        });
 
-        const sortedTasks = [...tasks].sort((a, b) => a.completed - b.completed);
+        if (sortedTasks.length === 0) {
+            list.innerHTML = `<li style="justify-content:center; color: var(--text-muted);">Belum ada target. Tambahkan di atas!</li>`;
+            return;
+        }
 
         sortedTasks.forEach(task => {
+            const completed = isCompletedCurrentCycle(task.id, task.recurrence);
             const li = document.createElement('li');
-            if (task.completed) li.classList.add('completed');
+            if (completed) li.classList.add('completed');
+            
+            const recLabels = { 'daily': '🔁 Harian', 'weekly': '📅 Mingguan', 'monthly': '🗓️ Bulanan', 'none': '🎯 Sekali' };
             
             li.innerHTML = `
-                <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})">
+                <input type="checkbox" ${completed ? 'checked' : ''} onchange="window.toggleTask('${task.id}', '${task.recurrence}', this.checked)">
                 <div class="task-content">
                     <span class="task-text">${task.text}</span>
-                    <span class="badge ${task.category}">${getCategoryLabel(task.category)}</span>
+                    <div class="badges">
+                        <span class="badge badge-cat">${task.category}</span>
+                        <span class="badge badge-rec">${recLabels[task.recurrence]}</span>
+                    </div>
                 </div>
                 <div class="action-btns">
-                    ${!task.completed ? `<button class="icon-btn notif" onclick="pinToNotification(${task.id}, '${task.text.replace(/'/g, "\\'")}')" title="Pin ke Notifikasi HP">🔔</button>` : ''}
-                    <button class="icon-btn delete" onclick="deleteTask(${task.id})" title="Hapus">🗑️</button>
+                    <button class="icon-btn" onclick="window.deleteTask('${task.id}')" title="Hapus">🗑️</button>
                 </div>
             `;
             list.appendChild(li);
         });
     }
 
-    function getCategoryLabel(cat) {
-        const labels = { 'ai-dev': 'Code', 'fitness': 'Fitness', 'bisnis': 'Bisnis', 'lainnya': 'Umum' };
-        return labels[cat] || 'Umum';
-    }
+    function renderHistoryTable() {
+        const container = document.getElementById('tableContainer');
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        document.getElementById('currentMonthLabel').innerText = `Data ${monthNames[month]} ${year}`;
 
-    function addTask() {
-        const input = document.getElementById('taskInput');
-        if (input.value.trim() === '') return;
-        tasks.push({ id: Date.now(), text: input.value, category: document.getElementById('categoryInput').value, completed: false });
-        input.value = '';
-        saveTasks(); renderTasks();
-    }
+        // Filter task yang masuk akal untuk ditampilkan di tabel bulanan (harian & mingguan/bulanan yg aktif)
+        if (tasks.length === 0) {
+            container.innerHTML = "<p style='text-align:center; color:gray; padding:1rem;'>Belum ada data tugas.</p>";
+            return;
+        }
 
-    function handleKeyPress(e) { if (e.key === 'Enter') addTask(); }
+        let html = `<table><thead><tr><th class="task-name">Nama Target</th>`;
+        for (let i = 1; i <= daysInMonth; i++) {
+            html += `<th>${i}</th>`;
+        }
+        html += `</tr></thead><tbody>`;
 
-    function toggleTask(id, forceComplete = null) {
-        tasks = tasks.map(t => {
-            if (t.id === id) return { ...t, completed: forceComplete !== null ? forceComplete : !t.completed };
-            return t;
+        tasks.forEach(task => {
+            html += `<tr><td class="task-name" title="${task.text}">${task.text}</td>`;
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                // Cek apakah ada record di history logs untuk taskId ini pada tanggal tersebut
+                const isDoneOnThisDay = historyLogs.some(h => h.taskId === task.id && h.date === dateStr);
+                html += `<td>${isDoneOnThisDay ? '<span class="check-mark">✓</span>' : ''}</td>`;
+            }
+            html += `</tr>`;
         });
-        saveTasks(); renderTasks();
+
+        html += `</tbody></table>`;
+        container.innerHTML = html;
     }
 
-    function deleteTask(id) {
-        tasks = tasks.filter(t => t.id !== id);
-        saveTasks(); renderTasks();
-    }
+    // --- ACTIONS (Global Functions for HTML) ---
+    window.addTask = async () => {
+        if (!currentUser) {
+            console.warn("Menunggu koneksi cloud...");
+            return;
+        }
+        const input = document.getElementById('taskInput');
+        if (!input.value.trim()) return;
 
-    renderTasks();
+        const newTask = {
+            id: 'task_' + Date.now(),
+            text: input.value.trim(),
+            category: document.getElementById('categoryInput').value,
+            recurrence: document.getElementById('recurrenceInput').value,
+            createdAt: Date.now()
+        };
+
+        input.value = '';
+        try {
+            await setDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'tasks', newTask.id), newTask);
+        } catch (e) { console.error("Gagal menambah task", e); }
+    };
+
+    window.toggleTask = async (taskId, recurrence, isChecking) => {
+        if (!currentUser) return;
+        const cycleKey = getCycleKey(recurrence, todayStr);
+        const historyId = `${taskId}_${cycleKey}`;
+        const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'history', historyId);
+
+        try {
+            if (isChecking) {
+                await setDoc(docRef, {
+                    id: historyId,
+                    taskId: taskId,
+                    date: todayStr, // Tanggal spesifik diselesaikannya
+                    cycleKey: cycleKey,
+                    timestamp: Date.now()
+                });
+            } else {
+                await deleteDoc(docRef);
+            }
+        } catch (e) { console.error("Gagal update status", e); }
+    };
+
+    let taskToDeleteId = null;
+
+    window.deleteTask = (taskId) => {
+        taskToDeleteId = taskId;
+        document.getElementById('confirmModal').style.display = 'flex';
+    };
+
+    window.cancelDelete = () => {
+        taskToDeleteId = null;
+        document.getElementById('confirmModal').style.display = 'none';
+    };
+
+    window.confirmDelete = async () => {
+        if (!currentUser || !taskToDeleteId) return;
+        try {
+            await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'tasks', taskToDeleteId));
+            cancelDelete();
+        } catch (e) { 
+            console.error("Gagal menghapus", e); 
+            cancelDelete();
+        }
+    };
+
+    window.switchTab = (tabId) => {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    };
+
+    // Jalankan Firebase
+    initFirebase();
 </script>
 
 </body>
