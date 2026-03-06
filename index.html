@@ -192,29 +192,15 @@
     // =========================================================================
     // ⬇️ MASUKKAN CONFIG FIREBASE KAMU DI SINI (DAPAT DARI FIREBASE CONSOLE) ⬇️
     // =========================================================================
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
-      // TODO: Add SDKs for Firebase products that you want to use
-      // https://firebase.google.com/docs/web/setup#available-libraries
-    
-      // Your web app's Firebase configuration
-      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-    const firebaseConfig = {
+    const myFirebaseConfig = {
         apiKey: "AIzaSyBPMU7vR0XoZ9_CABOPqwZPf9rWTwYu1-o",
         authDomain: "dailygoal-app.firebaseapp.com",
-        databaseURL: "https://dailygoal-app-default-rtdb.asia-southeast1.firebasedatabase.app",
         projectId: "dailygoal-app",
         storageBucket: "dailygoal-app.firebasestorage.app",
         messagingSenderId: "805757875499",
         appId: "1:805757875499:web:e850d96ee42b559aa5c16e",
         measurementId: "G-091BVRHN9S"
     };
-    
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    
     // =========================================================================
 
     let auth, db, appId, currentUser = null;
