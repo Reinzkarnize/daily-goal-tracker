@@ -112,8 +112,8 @@
 <!-- Custom Confirm Modal -->
 <div id="confirmModal" class="modal-overlay">
     <div class="modal-box">
-        <h3>Hapus Target?</h3>
-        <p>Target ini akan dihapus secara permanen dari daftar.</p>
+        <h3 id="modalTitle">Hapus Target?</h3>
+        <p id="modalDesc">Target ini akan dihapus secara permanen dari daftar.</p>
         <div class="modal-actions">
             <button class="btn-cancel" onclick="cancelDelete()">Batal</button>
             <button class="btn-danger" onclick="confirmDelete()">Ya, Hapus</button>
@@ -174,12 +174,38 @@
     import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+    // =========================================================================
+    // ⬇️ MASUKKAN CONFIG FIREBASE KAMU DI SINI (DAPAT DARI FIREBASE CONSOLE) ⬇️
+    // =========================================================================
+    // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+    
+      // Your web app's Firebase configuration
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      const firebaseConfig = {
+        apiKey: "AIzaSyBPMU7vR0XoZ9_CABOPqwZPf9rWTwYu1-o",
+        authDomain: "dailygoal-app.firebaseapp.com",
+        projectId: "dailygoal-app",
+        storageBucket: "dailygoal-app.firebasestorage.app",
+        messagingSenderId: "805757875499",
+        appId: "1:805757875499:web:e850d96ee42b559aa5c16e",
+        measurementId: "G-091BVRHN9S"
+      };
+    
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+    // =========================================================================
+
+
     let auth, db, appId, currentUser = null;
     let tasks = [];
     let historyLogs = [];
     let unsubTasks = null, unsubHistory = null;
 
-    // --- UTILITIES TANGGAL & WAKTU ---
     function getLocalYYYYMMDD(date) {
         const d = new Date(date);
         d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
@@ -202,17 +228,28 @@
         return dateStr;
     }
 
-    // --- INISIALISASI FIREBASE ---
     async function initFirebase() {
         try {
-            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-            if (!firebaseConfig) throw new Error("Config tidak ditemukan");
+            let firebaseConfig;
             
-            appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            // Cek jika berjalan di environment Canvas AI, atau di Vercel
+            if (typeof __firebase_config !== 'undefined') {
+                firebaseConfig = JSON.parse(__firebase_config);
+                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            } else {
+                firebaseConfig = myFirebaseConfig;
+                appId = "my-vercel-app"; // App ID statis saat di host
+                
+                if (firebaseConfig.apiKey === "API_KEY_KAMU") {
+                    throw new Error("Kamu belum memasukkan myFirebaseConfig ke dalam script HTML!");
+                }
+            }
+            
             const app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getFirestore(app);
 
+            // Logika login
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                 await signInWithCustomToken(auth, __initial_auth_token);
             } else {
@@ -230,15 +267,23 @@
             console.error("Firebase Error:", error);
             document.getElementById('userStatus').innerText = "⚠️ Mode Offline (Gagal konek cloud)";
             document.getElementById('loading').style.display = 'none';
+            
+            // Tampilkan error config di modal jika config belum diubah
+            if(error.message.includes("myFirebaseConfig")) {
+                 document.getElementById('modalTitle').innerText = "Database Belum Terhubung!";
+                 document.getElementById('modalDesc').innerText = "Kamu meng-host ini di Vercel. Tolong ganti variabel 'myFirebaseConfig' dengan data dari akun Firebase-mu.";
+                 document.getElementById('confirmModal').style.display = 'flex';
+                 document.querySelector('.btn-cancel').style.display = 'none';
+                 document.querySelector('.btn-danger').innerText = "Tutup";
+                 document.querySelector('.btn-danger').onclick = () => document.getElementById('confirmModal').style.display = 'none';
+            }
         }
     }
 
-    // --- FIRESTORE LISTENERS (REALTIME DATA) ---
     function setupRealtimeListeners() {
         if (!currentUser) return;
         const uid = currentUser.uid;
 
-        // Listener Tasks
         const tasksRef = collection(db, 'artifacts', appId, 'users', uid, 'tasks');
         unsubTasks = onSnapshot(tasksRef, (snapshot) => {
             tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -246,7 +291,6 @@
             document.getElementById('loading').style.display = 'none';
         }, (error) => console.error(error));
 
-        // Listener History
         const historyRef = collection(db, 'artifacts', appId, 'users', uid, 'history');
         unsubHistory = onSnapshot(historyRef, (snapshot) => {
             historyLogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -254,13 +298,11 @@
         }, (error) => console.error(error));
     }
 
-    // --- RENDER APP ---
     function renderUI() {
         renderTasks();
         renderHistoryTable();
     }
 
-    // Cek apakah task sudah dikerjakan di siklus saat ini
     function isCompletedCurrentCycle(taskId, recurrence) {
         const cycleKey = getCycleKey(recurrence, todayStr);
         return historyLogs.some(h => h.taskId === taskId && h.cycleKey === cycleKey);
@@ -270,7 +312,6 @@
         const list = document.getElementById('taskList');
         list.innerHTML = '';
         
-        // Urutkan: belum selesai di atas
         const sortedTasks = [...tasks].sort((a, b) => {
             return isCompletedCurrentCycle(a.id, a.recurrence) - isCompletedCurrentCycle(b.id, b.recurrence);
         });
@@ -314,7 +355,6 @@
         const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         document.getElementById('currentMonthLabel').innerText = `Data ${monthNames[month]} ${year}`;
 
-        // Filter task yang masuk akal untuk ditampilkan di tabel bulanan (harian & mingguan/bulanan yg aktif)
         if (tasks.length === 0) {
             container.innerHTML = "<p style='text-align:center; color:gray; padding:1rem;'>Belum ada data tugas.</p>";
             return;
@@ -330,7 +370,6 @@
             html += `<tr><td class="task-name" title="${task.text}">${task.text}</td>`;
             for (let i = 1; i <= daysInMonth; i++) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                // Cek apakah ada record di history logs untuk taskId ini pada tanggal tersebut
                 const isDoneOnThisDay = historyLogs.some(h => h.taskId === task.id && h.date === dateStr);
                 html += `<td>${isDoneOnThisDay ? '<span class="check-mark">✓</span>' : ''}</td>`;
             }
@@ -341,12 +380,8 @@
         container.innerHTML = html;
     }
 
-    // --- ACTIONS (Global Functions for HTML) ---
     window.addTask = async () => {
-        if (!currentUser) {
-            console.warn("Menunggu koneksi cloud...");
-            return;
-        }
+        if (!currentUser) return alert("Menunggu koneksi cloud... Pastikan Config Firebase Benar!");
         const input = document.getElementById('taskInput');
         if (!input.value.trim()) return;
 
@@ -373,11 +408,7 @@
         try {
             if (isChecking) {
                 await setDoc(docRef, {
-                    id: historyId,
-                    taskId: taskId,
-                    date: todayStr, // Tanggal spesifik diselesaikannya
-                    cycleKey: cycleKey,
-                    timestamp: Date.now()
+                    id: historyId, taskId: taskId, date: todayStr, cycleKey: cycleKey, timestamp: Date.now()
                 });
             } else {
                 await deleteDoc(docRef);
@@ -389,6 +420,15 @@
 
     window.deleteTask = (taskId) => {
         taskToDeleteId = taskId;
+        document.getElementById('modalTitle').innerText = "Hapus Target?";
+        document.getElementById('modalDesc').innerText = "Target ini akan dihapus secara permanen dari daftar.";
+        document.querySelector('.btn-cancel').style.display = 'block';
+        document.querySelector('.btn-danger').innerText = "Ya, Hapus";
+        
+        // Reset onclick
+        document.querySelector('.btn-cancel').onclick = cancelDelete;
+        document.querySelector('.btn-danger').onclick = confirmDelete;
+
         document.getElementById('confirmModal').style.display = 'flex';
     };
 
@@ -416,7 +456,6 @@
         event.currentTarget.classList.add('active');
     };
 
-    // Jalankan Firebase
     initFirebase();
 </script>
 
